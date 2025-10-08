@@ -234,12 +234,30 @@ def train_model_with_viz(df):
     col2.metric("🧪 Testing Set", f"{len(X_test):,} baris", "20% data")
     col3.metric("📊 Total Fitur", X_train.shape[1], "Variabel prediksi")
     
-    # Encode shipping
-    ship_map = {cat: idx for idx, cat in enumerate(X_train['shipping_type'].unique())}
-    X_train['shipping_type'] = X_train['shipping_type'].map(ship_map)
-    X_test['shipping_type'] = X_test['shipping_type'].map(ship_map)
+    # PERBAIKAN: Encode shipping_type SEBELUM split untuk konsistensi
+    # Buat mapping dari seluruh data
+    all_shipping_types = df['shipping_type'].unique() if 'shipping_type' in df.columns else X['shipping_type'].unique()
+    ship_map = {cat: idx for idx, cat in enumerate(all_shipping_types)}
+    
+    # Apply mapping
+    X_train_copy = X_train.copy()
+    X_test_copy = X_test.copy()
+    
+    if 'shipping_type' in X_train_copy.columns:
+        X_train_copy['shipping_type'] = X_train_copy['shipping_type'].map(ship_map)
+        X_test_copy['shipping_type'] = X_test_copy['shipping_type'].map(ship_map)
+        
+        # Handle any NaN from mapping
+        X_train_copy['shipping_type'].fillna(0, inplace=True)
+        X_test_copy['shipping_type'].fillna(0, inplace=True)
     
     st.info(f"✅ Label Encoding untuk 'shipping_type': {len(ship_map)} kategori pengiriman")
+    
+    # Validasi: Pastikan tidak ada NaN
+    if X_train_copy.isnull().sum().sum() > 0 or X_test_copy.isnull().sum().sum() > 0:
+        st.error("⚠️ Ditemukan nilai NaN setelah encoding! Membersihkan...")
+        X_train_copy.fillna(0, inplace=True)
+        X_test_copy.fillna(0, inplace=True)
     
     # Train
     st.markdown("---")
@@ -281,7 +299,7 @@ def train_model_with_viz(df):
     status.text("🔄 Training model... (mungkin butuh 1-2 menit)")
     progress.progress(60)
     
-    model.fit(X_train, y_train)
+    model.fit(X_train_copy, y_train)
     
     status.text("✅ Training selesai!")
     progress.progress(100)
@@ -307,11 +325,29 @@ def train_model_with_viz(df):
     </div>
     """, unsafe_allow_html=True)
     
-    y_pred = model.predict(X_test)
+    y_pred = model.predict(X_test_copy)
     
     mae = mean_absolute_error(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     r2 = r2_score(y_test, y_pred)
+    
+    # Validasi R² - jika negatif, ada masalah!
+    if r2 < 0:
+        st.error(f"""
+        ⚠️ **PERINGATAN: R² Score Negatif ({r2:.4f})**
+        
+        Ini menunjukkan model performanya lebih buruk dari prediksi rata-rata sederhana!
+        
+        **Kemungkinan Penyebab:**
+        - Feature mismatch antara train dan test
+        - Data terlalu sedikit atau tidak representatif
+        - Fitur tidak informatif untuk prediksi
+        
+        **Rekomendasi:**
+        - Periksa kembali data input
+        - Pastikan data training cukup banyak (minimal 500 rows)
+        - Feature engineering mungkin perlu diperbaiki
+        """)
     
     col1, col2, col3 = st.columns(3)
     
@@ -428,7 +464,7 @@ def train_model_with_viz(df):
         """, unsafe_allow_html=True)
         
         feat_imp = pd.DataFrame({
-            'Feature': X_train.columns,
+            'Feature': X_train_copy.columns,
             'Importance': model.feature_importances_
         }).sort_values('Importance', ascending=False).head(15)
         
@@ -470,7 +506,7 @@ def train_model_with_viz(df):
     - Model siap digunakan untuk prediksi
     """)
     
-    return model, ship_map, X_train.columns.tolist(), {'MAE': mae, 'RMSE': rmse, 'R2': r2}
+    return model, ship_map, X_train_copy.columns.tolist(), {'MAE': mae, 'RMSE': rmse, 'R2': r2}
 
 @st.cache_resource
 def get_model():
