@@ -347,7 +347,9 @@ with tab2:
             col2.metric("📊 Level", "High" if pred > 70 else "Medium" if pred > 40 else "Low")
             col3.metric("⭐ Score", f"{min(pred, 100):.0f}/100")
             
-            st.progress(min(pred/100, 1.0))
+            # Fix progress bar - ensure value is between 0 and 1
+            progress_value = max(0.0, min(pred / 100.0, 1.0))
+            st.progress(progress_value)
             
             st.markdown("### 💡 Insights")
             if pred > 70:
