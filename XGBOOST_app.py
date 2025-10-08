@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
-import plotly.graph_objects as go
-import plotly.express as px
 
 # Konfigurasi halaman
 st.set_page_config(
@@ -113,10 +111,13 @@ if st.sidebar.button("🔮 Prediksi Jumlah Pembelian", type="primary"):
         # One-hot encoding
         df_encoded = pd.get_dummies(df_input, columns=list(categorical_features.keys()), drop_first=True)
         
-        # Label encoding untuk shipping_type
+        # Manual mapping untuk shipping_type
         df_encoded['shipping_type'] = shipping_type
-        if le is not None:
-            df_encoded['shipping_type'] = le.transform([shipping_type])[0]
+        if shipping_mapping is not None:
+            if shipping_type in shipping_mapping:
+                df_encoded['shipping_type'] = shipping_mapping[shipping_type]
+            else:
+                df_encoded['shipping_type'] = 0  # default value
         
         # Pastikan semua kolom sesuai dengan training
         for col in feature_columns:
@@ -145,47 +146,34 @@ if st.sidebar.button("🔮 Prediksi Jumlah Pembelian", type="primary"):
             diff = prediction - category_avg.get(category, 50)
             st.metric("📈 vs Rata-rata Kategori", f"${diff:+.2f}")
         
-        # Visualisasi
+        # Visualisasi sederhana dengan progress bar
         st.markdown("---")
         st.subheader("📊 Analisis Prediksi")
         
         col1, col2 = st.columns(2)
         
         with col1:
-            # Gauge chart
-            fig = go.Figure(go.Indicator(
-                mode="gauge+number+delta",
-                value=prediction,
-                domain={'x': [0, 1], 'y': [0, 1]},
-                title={'text': "Jumlah Pembelian (USD)"},
-                delta={'reference': 50},
-                gauge={
-                    'axis': {'range': [None, 100]},
-                    'bar': {'color': "darkblue"},
-                    'steps': [
-                        {'range': [0, 30], 'color': "lightgray"},
-                        {'range': [30, 70], 'color': "gray"},
-                        {'range': [70, 100], 'color': "darkgray"}
-                    ],
-                    'threshold': {
-                        'line': {'color': "red", 'width': 4},
-                        'thickness': 0.75,
-                        'value': 80
-                    }
-                }
-            ))
-            st.plotly_chart(fig, use_container_width=True)
+            st.write("**Level Pembelian:**")
+            progress_value = min(prediction / 100, 1.0)
+            st.progress(progress_value)
+            
+            if prediction > 70:
+                st.success("🟢 High Value Customer")
+            elif prediction > 40:
+                st.info("🟡 Medium Value Customer")
+            else:
+                st.warning("🔴 Low Value Customer")
         
         with col2:
-            # Bar chart perbandingan
+            st.write("**Perbandingan dengan Rata-rata:**")
             comparison_data = pd.DataFrame({
                 'Kategori': ['Prediksi Anda', 'Rata-rata Kategori', 'Rata-rata Keseluruhan'],
-                'Jumlah': [prediction, category_avg.get(category, 50), 50]
+                'Jumlah (USD)': [prediction, category_avg.get(category, 50), 50]
             })
-            fig2 = px.bar(comparison_data, x='Kategori', y='Jumlah', 
-                         title='Perbandingan dengan Rata-rata',
-                         color='Jumlah', color_continuous_scale='blues')
-            st.plotly_chart(fig2, use_container_width=True)
+            st.dataframe(comparison_data, use_container_width=True)
+            
+            # Bar chart sederhana
+            st.bar_chart(comparison_data.set_index('Kategori'))
         
         # Insight
         st.markdown("---")
