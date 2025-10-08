@@ -339,17 +339,20 @@ with tab2:
             df_enc = df_enc[feat_cols]
             pred = model.predict(df_enc)[0]
             
+            # Convert to native Python float
+            pred = float(pred)
+            
             st.markdown("---")
             st.markdown("## 💰 Result")
             
             col1, col2, col3 = st.columns(3)
             col1.metric("💵 Prediction", f"${pred:.2f}")
             col2.metric("📊 Level", "High" if pred > 70 else "Medium" if pred > 40 else "Low")
-            col3.metric("⭐ Score", f"{min(pred, 100):.0f}/100")
+            col3.metric("⭐ Score", f"{int(min(pred, 100))}/100")
             
-            # Fix progress bar - ensure value is between 0 and 1
-            progress_value = max(0.0, min(pred / 100.0, 1.0))
-            st.progress(progress_value)
+            # Ensure progress value is correct type and range
+            progress_val = float(max(0.0, min(pred / 100.0, 1.0)))
+            st.progress(progress_val)
             
             st.markdown("### 💡 Insights")
             if pred > 70:
