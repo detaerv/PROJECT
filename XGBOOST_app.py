@@ -43,6 +43,7 @@ def check_imports():
         imports_ok = False
         error_msgs.append(f"❌ XGBoost: {e}")
     
+    # Import matplotlib - ALWAYS try to import
     try:
         import matplotlib
         matplotlib.use('Agg')
@@ -56,15 +57,15 @@ def check_imports():
         
         globals()['plt'] = plt
         globals()['sns'] = sns
-        globals()['MATPLOTLIB_OK'] = True
+        
+        # Set flag to True if successful
+        return imports_ok, error_msgs, True
     except ImportError as e:
         error_msgs.append(f"⚠️ Matplotlib: {e}")
-        globals()['MATPLOTLIB_OK'] = False
-    
-    return imports_ok, error_msgs
+        return imports_ok, error_msgs, False
 
 # Check imports
-IMPORTS_OK, IMPORT_ERRORS = check_imports()
+IMPORTS_OK, IMPORT_ERRORS, MATPLOTLIB_OK = check_imports()
 
 # Custom CSS
 st.markdown("""
@@ -137,7 +138,7 @@ def train_model_with_full_analysis(df):
     # Visualisasi Distribusi Target
     st.markdown("### 📊 Distribusi Purchase Amount (Variabel Target)")
     
-    if globals().get('MATPLOTLIB_OK'):
+    if MATPLOTLIB_OK:
         col1, col2 = st.columns([2, 1])
         
         with col1:
@@ -158,6 +159,9 @@ def train_model_with_full_analysis(df):
             st.metric("Std Dev", f"${stats['std']:.2f}")
             st.metric("Min", f"${stats['min']:.2f}")
             st.metric("Max", f"${stats['max']:.2f}")
+    else:
+        st.error("❌ Matplotlib tidak tersedia - visualisasi tidak dapat ditampilkan")
+        st.info("Pastikan matplotlib dan seaborn terinstall di requirements.txt")
     
     st.markdown("""
     <div class='info-box'>
@@ -214,7 +218,7 @@ def train_model_with_full_analysis(df):
             st.success(f"✅ `{col}` dikonversi ke format numerik")
     
     # Correlation Matrix
-    if globals().get('MATPLOTLIB_OK'):
+    if MATPLOTLIB_OK:
         st.markdown("### 🔗 Matriks Korelasi Variabel Numerik")
         
         numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
@@ -445,7 +449,7 @@ def train_model_with_full_analysis(df):
         """)
     
     # Visualisasi Prediksi vs Aktual
-    if globals().get('MATPLOTLIB_OK'):
+    if MATPLOTLIB_OK:
         st.markdown("### 🎯 Prediksi vs Nilai Aktual")
         
         fig, ax = plt.subplots(figsize=(12, 8))
@@ -483,7 +487,7 @@ def train_model_with_full_analysis(df):
         """, unsafe_allow_html=True)
     
     # Analisis Residuals
-    if globals().get('MATPLOTLIB_OK'):
+    if MATPLOTLIB_OK:
         st.markdown("### 📉 Analisis Residuals (Kesalahan Prediksi)")
         
         residuals = y_test - y_pred
@@ -536,7 +540,7 @@ def train_model_with_full_analysis(df):
     
     st.markdown("### 📊 Top 20 Fitur Terpenting")
     
-    if globals().get('MATPLOTLIB_OK'):
+    if MATPLOTLIB_OK:
         fig, ax = plt.subplots(figsize=(14, 10))
         
         top_n = min(20, len(features_df))
@@ -643,6 +647,12 @@ if not IMPORTS_OK:
     for error in IMPORT_ERRORS:
         st.error(error)
     st.stop()
+
+# Show matplotlib status
+if MATPLOTLIB_OK:
+    st.success("✅ Matplotlib & Seaborn tersedia - Visualisasi aktif")
+else:
+    st.warning("⚠️ Matplotlib tidak tersedia - Visualisasi akan dibatasi")
 
 if IMPORT_ERRORS:  # Show warnings for matplotlib
     for error in IMPORT_ERRORS:
