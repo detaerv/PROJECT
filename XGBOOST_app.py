@@ -1380,32 +1380,31 @@ with tab3:
     
     # FAQ Section
     with st.expander("❓ Frequently Asked Questions (FAQ)"):
-        st.markdown("""
-        **Q: Berapa minimum data yang diperlukan untuk training?**  
-        A: Minimal 500 rows, optimal 1000+ rows untuk hasil terbaik.
-        
-        **Q: Apakah model bisa digunakan untuk produk lain?**  
-        A: Ya, asalkan struktur data dan fitur serupa. Mungkin perlu retraining dengan data spesifik.
-        
-        **Q: Berapa lama model harus di-update?**  
-        A: Rekomendasi: setiap 1-3 bulan, atau ketika performa menurun >5%.
-        
-        **Q: Apakah prediksi 100% akurat?**  
-        A: Tidak ada model yang 100% akurat. R² score menunjukkan tingkat akurasi. Gunakan sebagai guidance, bukan absolute truth.
-        
-        **Q: Bagaimana cara improve model accuracy?**  
-        A: 1) Tambah data training, 2) Feature engineering, 3) Hyperparameter tuning, 4) Ensemble methods.
-        
-        **Q: Apakah data customer aman?**  
-        A: Ya, data diproses secara lokal dan tidak disimpan permanen di server.
-        
-        **Q: Bisa export hasil prediksi?**  
-        A: Saat ini manual copy, fitur export CSV akan ditambahkan di versi berikutnya.
-        
-        **Q: Model error/crash, apa yang harus dilakukan?**  
-        A: 1) Check format data, 2) Ensure all required columns ada, 3) Check for missing values, 4) Contact support jika masih error.
-        """)
-
+    st.markdown("""
+    **Q: Berapa minimum data yang diperlukan untuk training?**  
+    A: Minimal 500 rows, optimal 1000+ rows untuk hasil terbaik.
+    
+    **Q: Apakah model bisa digunakan untuk produk lain?**  
+    A: Ya, asalkan struktur data dan fitur serupa. Mungkin perlu retraining dengan data spesifik.
+    
+    **Q: Berapa lama model harus di-update?**  
+    A: Rekomendasi: setiap 1-3 bulan, atau ketika performa menurun >5%.
+    
+    **Q: Apakah prediksi 100% akurat?**  
+    A: Tidak ada model yang 100% akurat. R² score menunjukkan tingkat akurasi. Gunakan sebagai guidance, bukan absolute truth.
+    
+    **Q: Bagaimana cara improve model accuracy?**  
+    A: 1) Tambah data training, 2) Feature engineering, 3) Hyperparameter tuning, 4) Ensemble methods.
+    
+    **Q: Apakah data customer aman?**  
+    A: Ya, data diproses secara lokal dan tidak disimpan permanen di server.
+    
+    **Q: Bisa export hasil prediksi?**  
+    A: Saat ini manual copy, fitur export CSV akan ditambahkan di versi berikutnya.
+    
+    **Q: Model error/crash, apa yang harus dilakukan?**  
+    A: 1) Check format data, 2) Ensure all required columns ada, 3) Check for missing values, 4) Contact support jika masih error.
+    """)
 # Footer
 st.markdown("---")
 st.markdown("""
