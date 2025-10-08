@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
-from sklearn.preprocessing import LabelEncoder
 import plotly.graph_objects as go
 import plotly.express as px
 
@@ -23,16 +22,16 @@ def load_model():
     try:
         with open('xgb_model.pkl', 'rb') as f:
             model = pickle.load(f)
-        with open('label_encoder.pkl', 'rb') as f:
-            le = pickle.load(f)
+        with open('shipping_type_mapping.pkl', 'rb') as f:
+            shipping_mapping = pickle.load(f)
         with open('feature_columns.pkl', 'rb') as f:
             feature_columns = pickle.load(f)
-        return model, le, feature_columns
+        return model, shipping_mapping, feature_columns
     except FileNotFoundError:
         st.error("Model belum tersedia. Silakan latih model terlebih dahulu.")
         return None, None, None
 
-model, le, feature_columns = load_model()
+model, shipping_mapping, feature_columns = load_model()
 
 # Sidebar untuk input
 st.sidebar.header("📝 Input Data Pelanggan")
